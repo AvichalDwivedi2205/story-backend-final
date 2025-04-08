@@ -30,8 +30,10 @@ def display_menu():
     print("3. Test Exercise Generator Agent")
     print("4. Test Guide Agent")
     print("5. Test Workflow Planning Agent")
-    print("6. Exit")
-    return input("\nSelect an option (1-6): ")
+    print("6. Test Journal Agent")
+    print("7. Test Gratitude Agent")
+    print("8. Exit")
+    return input("\nSelect an option (1-8): ")
 
 def test_assistant_agent():
     """Interactive test for the Assistant Agent"""
@@ -369,6 +371,151 @@ def test_workflow_agent():
         
     input("\nPress Enter to continue...")
 
+def test_journal_agent():
+    """Interactive test for the Journal Agent"""
+    clear_screen()
+    print("=== Journal Agent Test ===\n")
+    
+    user_id = input("Enter user ID (default: test_user): ") or "test_user"
+    
+    print("\nEnter your journal entry text (or 'exit' to return to main menu):")
+    journal_text = input("> ")
+    
+    if journal_text.lower() == "exit":
+        return
+    
+    payload = {
+        "user_id": user_id,
+        "content": journal_text
+    }
+    
+    try:
+        print("\nAnalyzing journal entry...")
+        response = requests.post(
+            f"{BASE_URL}/api/journal/analyze",
+            json=payload
+        )
+        
+        if response.status_code == 200:
+            result = response.json()
+            print("\n=== RESPONSE ===")
+            if result.get("success"):
+                journal_analysis = result.get("data", {})
+                
+                print("\n--- SENTIMENT ANALYSIS ---")
+                sentiment = journal_analysis.get("sentiment_analysis", {})
+                print(f"Sentiment: {sentiment.get('label')} (Score: {sentiment.get('score'):.2f})")
+                
+                print("\n--- EMOTION ANALYSIS ---")
+                emotion = journal_analysis.get("emotion_analysis", {})
+                print(f"Dominant Emotion: {emotion.get('dominant_emotion')}")
+                print("\nEmotion Breakdown:")
+                for emotion_name, score in emotion.get("emotions", {}).items():
+                    print(f"- {emotion_name}: {score:.2f}")
+                
+                print("\n--- INSIGHTS ---")
+                insights = journal_analysis.get("insights", {})
+                print(f"\nSummary: {insights.get('summary')}")
+                
+                print("\nKey Themes:")
+                for theme in insights.get("key_themes", []):
+                    print(f"- {theme}")
+                
+                print("\nCognitive Distortions:")
+                for distortion in insights.get("cognitive_distortions", []):
+                    print(f"- {distortion}")
+                
+                print("\nGrowth Indicators:")
+                for indicator in insights.get("growth_indicators", []):
+                    print(f"- {indicator}")
+                
+                print("\nReflection Questions:")
+                for question in insights.get("reflection_questions", []):
+                    print(f"- {question}")
+                
+                print("\nActionable Advice:")
+                for advice in insights.get("actionable_advice", []):
+                    print(f"- {advice}")
+            else:
+                print(f"Error: {result.get('message')}")
+        else:
+            print(f"\nError: Status code {response.status_code}")
+            print(response.text)
+            
+    except Exception as e:
+        print(f"\nError: {e}")
+        
+    input("\nPress Enter to continue...")
+
+def test_gratitude_agent():
+    """Interactive test for the Gratitude Agent"""
+    clear_screen()
+    print("=== Gratitude Agent Test ===\n")
+    
+    user_id = input("Enter user ID (default: test_user): ") or "test_user"
+    
+    print("\nChoose input method:")
+    print("1. Enter journal text directly")
+    print("2. Enter key themes and emotions")
+    choice = input("\nSelect option (1-2): ")
+    
+    journal_text = None
+    key_themes = None
+    dominant_emotion = "neutral"
+    
+    if choice == "1":
+        print("\nEnter your journal text:")
+        journal_text = input("> ")
+        if not journal_text:
+            print("Journal text is required for this option.")
+            input("\nPress Enter to continue...")
+            return
+    elif choice == "2":
+        print("\nEnter key themes (comma-separated, e.g., 'family, work, health'):")
+        themes_input = input("> ")
+        key_themes = [theme.strip() for theme in themes_input.split(",")] if themes_input else []
+        
+        print("\nEnter dominant emotion (default: neutral):")
+        emotion_input = input("> ")
+        dominant_emotion = emotion_input if emotion_input else "neutral"
+    else:
+        print("Invalid option.")
+        input("\nPress Enter to continue...")
+        return
+    
+    payload = {
+        "user_id": user_id,
+        "journal_text": journal_text,
+        "key_themes": key_themes,
+        "dominant_emotion": dominant_emotion
+    }
+    
+    try:
+        print("\nGenerating gratitude exercise...")
+        response = requests.post(
+            f"{BASE_URL}/api/gratitude/generate",
+            json=payload
+        )
+        
+        if response.status_code == 200:
+            result = response.json()
+            print("\n=== RESPONSE ===")
+            if result.get("success"):
+                gratitude_data = result.get("data", {})
+                
+                print("\n--- GRATITUDE EXERCISE ---")
+                print(gratitude_data.get("gratitude_exercise", "No gratitude exercise generated."))
+            else:
+                print(f"Error: {result.get('message')}")
+        else:
+            print(f"\nError: Status code {response.status_code}")
+            print(response.text)
+            
+    except Exception as e:
+        print(f"\nError: {e}")
+        
+    input("\nPress Enter to continue...")
+
 def main():
     """Main CLI loop"""
     while True:
@@ -385,6 +532,10 @@ def main():
         elif choice == "5":
             test_workflow_agent()
         elif choice == "6":
+            test_journal_agent()
+        elif choice == "7":
+            test_gratitude_agent()
+        elif choice == "8":
             print("\nExiting. Goodbye!")
             sys.exit(0)
         else:
