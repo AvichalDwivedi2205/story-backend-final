@@ -27,9 +27,11 @@ def display_menu():
     print("=== Mental Health Agent Tester ===\n")
     print("1. Test Assistant Agent")
     print("2. Test Therapy Agent")
-    print("3. Test Workflow Planning Agent")
-    print("4. Exit")
-    return input("\nSelect an option (1-4): ")
+    print("3. Test Exercise Generator Agent")
+    print("4. Test Guide Agent")
+    print("5. Test Workflow Planning Agent")
+    print("6. Exit")
+    return input("\nSelect an option (1-6): ")
 
 def test_assistant_agent():
     """Interactive test for the Assistant Agent"""
@@ -174,6 +176,116 @@ def test_therapy_agent():
     
     input("\nPress Enter to continue...")
 
+def test_exercise_agent():
+    """Interactive test for the Exercise Generator Agent"""
+    clear_screen()
+    print("=== Exercise Generator Agent Test ===\n")
+    
+    user_id = input("Enter user ID (default: test_user): ") or "test_user"
+    
+    print("\nEnter key themes (comma-separated, e.g., 'anxiety, work stress, relationships'):")
+    themes_input = input("> ")
+    key_themes = [theme.strip() for theme in themes_input.split(",")] if themes_input else []
+    
+    print("\nEnter cognitive distortions (comma-separated, e.g., 'catastrophizing, black-and-white thinking'):")
+    distortions_input = input("> ")
+    cognitive_distortions = [distortion.strip() for distortion in distortions_input.split(",")] if distortions_input else []
+    
+    print("\nEnter dominant emotion (e.g., anxious, sad, frustrated):")
+    dominant_emotion = input("> ") or "neutral"
+    
+    payload = {
+        "user_id": user_id,
+        "key_themes": key_themes,
+        "cognitive_distortions": cognitive_distortions,
+        "dominant_emotion": dominant_emotion
+    }
+    
+    try:
+        print("\nGenerating exercises...")
+        response = requests.post(
+            f"{BASE_URL}/api/exercise/generate",
+            json=payload
+        )
+        
+        if response.status_code == 200:
+            result = response.json()
+            print("\n=== RESPONSE ===")
+            if result.get("success"):
+                exercises = result.get("data", {})
+                
+                print("\n--- MORNING REFLECTION ---")
+                print(exercises.get("morning_reflection", {}).get("text", "No morning reflection generated."))
+                
+                print("\n--- CBT EXERCISE ---")
+                print(exercises.get("cbt_exercise", {}).get("text", "No CBT exercise generated."))
+                
+                # Could also display gratitude_exercise, mindfulness_meditation, and relaxation_techniques
+                # if they are populated in your system
+            else:
+                print(f"Error: {result.get('message')}")
+        else:
+            print(f"\nError: Status code {response.status_code}")
+            print(response.text)
+            
+    except Exception as e:
+        print(f"\nError: {e}")
+        
+    input("\nPress Enter to continue...")
+
+def test_guide_agent():
+    """Interactive test for the Guide Agent"""
+    clear_screen()
+    print("=== Guide Agent Test ===\n")
+    
+    user_id = input("Enter user ID (default: test_user): ") or "test_user"
+    
+    while True:
+        print("\nEnter your query or concern (or 'exit' to return to main menu):")
+        query = input("> ")
+        
+        if query.lower() == "exit":
+            break
+        
+        payload = {
+            "user_id": user_id,
+            "query": query
+        }
+        
+        try:
+            print("\nFetching guidance...")
+            response = requests.post(
+                f"{BASE_URL}/api/guide/recommend",
+                json=payload
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                print("\n=== RESPONSE ===")
+                if result.get("success"):
+                    data = result.get("data", {})
+                    
+                    print(f"\nRecommended Feature: {data.get('recommended_feature')}")
+                    print(f"Explanation: {data.get('explanation')}")
+                    print(f"Next Steps: {data.get('next_steps')}")
+                    
+                    if data.get("external_agents"):
+                        print("\nRelevant External Agents:")
+                        for agent in data.get("external_agents"):
+                            print(f"- {agent.get('agent_name')}: {agent.get('agent_description')}")
+                    
+                    print(f"\nPersonalized Message: {data.get('personalized_message')}")
+                else:
+                    print(f"Error: {result.get('message')}")
+            else:
+                print(f"\nError: Status code {response.status_code}")
+                print(response.text)
+                
+        except Exception as e:
+            print(f"\nError: {e}")
+            
+        input("\nPress Enter to continue...")
+
 def test_workflow_agent():
     """Interactive test for the Workflow Planning Agent"""
     clear_screen()
@@ -267,8 +379,12 @@ def main():
         elif choice == "2":
             test_therapy_agent()
         elif choice == "3":
-            test_workflow_agent()
+            test_exercise_agent()
         elif choice == "4":
+            test_guide_agent()
+        elif choice == "5":
+            test_workflow_agent()
+        elif choice == "6":
             print("\nExiting. Goodbye!")
             sys.exit(0)
         else:
