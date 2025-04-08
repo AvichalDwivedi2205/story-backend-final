@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+firebase-admin
+google-generativeai
+langchain
+langchain-google-genai
+transformers
+torch
+uagents
+python-dotenv
+pydantic
+fetch-ai-client
