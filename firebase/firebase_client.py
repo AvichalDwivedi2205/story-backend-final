@@ -129,3 +129,17 @@ class FirebaseClient:
         except Exception as e:
             print(f"Error retrieving exercises: {e}")
             return None
+
+    def save_workflow_plan(self, workflow_data):
+        """Save workflow plan to Firebase"""
+        try:
+            # Convert datetime objects to ISO format strings
+            workflow_data["timestamp"] = workflow_data["timestamp"].isoformat()
+            
+            # Save to workflows collection
+            workflow_ref = self.db.collection("workflows").document()
+            workflow_ref.set(workflow_data)
+            return workflow_ref.id
+        except Exception as e:
+            print(f"Error saving workflow plan: {e}")
+            return None

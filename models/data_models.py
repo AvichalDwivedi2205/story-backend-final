@@ -65,3 +65,27 @@ class AgentResponse(BaseModel):
     success: bool
     data: Any
     message: str
+
+
+class WorkflowRequirement(BaseModel):
+    category: str
+    description: str
+    priority: str = "medium"
+
+
+class AgentComponent(BaseModel):
+    name: str
+    description: str
+    capabilities: List[str]
+    relevance_score: float
+
+
+class WorkflowPlan(BaseModel):
+    title: str
+    description: str
+    requirements: List[WorkflowRequirement]
+    recommended_agents: List[AgentComponent]
+    integration_steps: List[str]
+    architecture_diagram: Optional[str] = None
+    user_id: str
+    timestamp: datetime = Field(default_factory=datetime.now)

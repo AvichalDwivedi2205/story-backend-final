@@ -13,7 +13,8 @@ from routers import (
     gratitude_routes,
     therapy_routes,
     guide_routes,
-    assistant_routes
+    assistant_routes,
+    workflow_routes
 )
 
 # Configure logging
@@ -48,6 +49,7 @@ app.include_router(gratitude_routes.router)
 app.include_router(therapy_routes.router)
 app.include_router(guide_routes.router)
 app.include_router(assistant_routes.router)
+app.include_router(workflow_routes.router)
 
 @app.get("/")
 async def root():
@@ -91,6 +93,12 @@ def init_agents(host: str, port: int):
     guide_agent = guide_routes.init_agent(guide_webhook_url)
     agent_addresses["guide"] = guide_agent.address
     logger.info(f"Initialized Guide Agent with address: {guide_agent.address}")
+    
+    # Initialize Workflow Planning Agent (new)
+    workflow_webhook_url = f"{base_url}/api/workflow/webhook"
+    workflow_agent = workflow_routes.init_agent(workflow_webhook_url)
+    agent_addresses["workflow"] = workflow_agent.address
+    logger.info(f"Initialized Workflow Planning Agent with address: {workflow_agent.address}")
     
     # Initialize Assistant Agent (with addresses of all other agents)
     assistant_webhook_url = f"{base_url}/api/assistant/webhook"
