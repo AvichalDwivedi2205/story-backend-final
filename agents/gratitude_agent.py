@@ -41,15 +41,15 @@ class GratitudeAgent:
         """Register this agent with Agentverse"""
         readme = create_readme(
             domain="mental-health",
-            description="This agent helps users recognize and appreciate positive aspects in their life through gratitude exercises.",
+            description="This agent helps users identify things they should be grateful for based on their journal entries.",
             use_cases=[
-                "Generate personalized gratitude exercises based on journal entries",
-                "Help users identify things they're grateful for when struggling",
-                "Create structured gratitude practices tailored to user's emotional state"
+                "Identify gratitude opportunities in user's journal entries",
+                "Help users recognize positive aspects in their life they might have overlooked",
+                "Provide personalized gratitude insights based on user's emotional state"
             ],
             payload_parameters=[
-                {"parameter": "user_id", "description": "ID of the user for whom gratitude exercise is being generated"},
-                {"parameter": "journal_text", "description": "Optional journal text to analyze for gratitude opportunities"},
+                {"parameter": "user_id", "description": "ID of the user for whom gratitude insights are being generated"},
+                {"parameter": "journal_text", "description": "Journal text to analyze for gratitude opportunities"},
                 {"parameter": "key_themes", "description": "Optional key themes identified in journal entries"},
                 {"parameter": "dominant_emotion", "description": "Optional dominant emotion identified in journal analysis"}
             ]
@@ -63,49 +63,55 @@ class GratitudeAgent:
             use_secondary=USE_SECONDARY_KEY
         )
     
-    def generate_gratitude_exercise(self, user_id, journal_text=None, key_themes=None, dominant_emotion="neutral"):
-        """Generate a gratitude exercise based on journal content or themes"""
+    def identify_gratitude_opportunities(self, user_id, journal_text=None, key_themes=None, dominant_emotion="neutral"):
+        """Identify things to be grateful for in the user's journal entry"""
         try:
+            if not journal_text and not key_themes:
+                return "Please provide journal text or key themes to analyze for gratitude opportunities."
+                
             context = ""
             if journal_text:
                 context = f"\nThe user wrote this journal entry: {journal_text}"
             elif key_themes:
                 context = f"\nThe user's journal entries focus on these themes: {', '.join(key_themes)}"
                 
-            difficulty_level = ""
+            emotional_context = ""
             if dominant_emotion in ["sadness", "anger", "fear", "disgust"]:
-                difficulty_level = """
-                Please note that the user is experiencing challenging emotions, so include specific guidance 
-                for finding gratitude during difficult times.
+                emotional_context = """
+                Please note that the user is experiencing challenging emotions, so be especially thoughtful 
+                about finding positive aspects they might be overlooking.
                 """
             
             prompt = f"""
-            Create a personalized gratitude exercise for someone experiencing {dominant_emotion}.{context}
-            {difficulty_level}
+            Analyze this journal entry and identify specific things the user can be grateful for.{context}
+            {emotional_context}
+
+            Your job is to help the user see specific things from their day or life that they can appreciate, even if they didn't explicitly recognize them in their journaling.
             
-            The exercise should:
-            1. Be specific and actionable
-            2. Help the user identify things they're genuinely grateful for
-            3. Include thoughtful prompts if they're struggling to think of things
-            4. Explain the benefits of gratitude practice
-            5. Include a structured format (e.g., writing prompts, reflection questions)
-            6. Be written in a warm, encouraging tone
-            7. Follow a clear structure with a title, introduction, steps, and conclusion
-            8. Be 200-300 words in length
+            Your response should:
+            1. Find 3-5 concrete things to be grateful for based on what's directly mentioned or implied in their journal
+            2. For each identified item, explain why it's worth appreciating and how it positively impacts their life
+            3. Be empathetic and personal, connecting to the user's specific situation
+            4. If the journal contains mostly negative content, identify small positives, capabilities, or resources they might be taking for granted
+            5. Be authentic and thoughtful - don't force positivity where it doesn't fit
             
-            Format the exercise in a clear, structured way that's easy to follow.
+            Format your response as a warm, conversational message that feels like it's coming from a supportive friend.
+            Begin with a brief acknowledgment of their feelings, then gently direct their attention to the positive elements you've identified.
+            End with a brief encouraging note.
+            Avoid using numbered lists - integrate the gratitude points naturally into your message.
+            Keep the total response between 200-300 words.
             """
             
-            # Generate gratitude exercise
-            gratitude_exercise_text = gemini_client.generate_text(prompt, temperature=0.7)
+            # Generate gratitude insights
+            gratitude_insights = gemini_client.generate_text(prompt, temperature=0.7)
             
-            return gratitude_exercise_text
+            return gratitude_insights
         except Exception as e:
-            logger.error(f"Error generating gratitude exercise: {e}")
-            return "Unable to generate gratitude exercise."
+            logger.error(f"Error identifying gratitude opportunities: {e}")
+            return "Unable to identify gratitude opportunities in your journal entry."
     
-    def update_user_exercises(self, user_id, gratitude_exercise_text):
-        """Update user exercises with gratitude exercise"""
+    def update_user_exercises(self, user_id, gratitude_text):
+        """Update user exercises with gratitude insights"""
         try:
             # Get existing exercises
             existing_exercises = firebase_client.get_user_exercises(user_id)
@@ -114,7 +120,7 @@ class GratitudeAgent:
                 # Create exercises object with updated gratitude exercise
                 exercises = Exercises(
                     morning_reflection=Exercise(**existing_exercises.get("morning_reflection", {"text": "", "completed": False})),
-                    gratitude_exercise=Exercise(text=gratitude_exercise_text, completed=False),
+                    gratitude_exercise=Exercise(text=gratitude_text, completed=False),
                     mindfulness_meditation=Exercise(**existing_exercises.get("mindfulness_meditation", {"text": "", "completed": False})),
                     cbt_exercise=Exercise(**existing_exercises.get("cbt_exercise", {"text": "", "completed": False})),
                     relaxation_techniques=Exercise(**existing_exercises.get("relaxation_techniques", {"text": "", "completed": False}))
@@ -123,7 +129,7 @@ class GratitudeAgent:
                 # Create new exercises object with only gratitude exercise
                 exercises = Exercises(
                     morning_reflection=Exercise(text="", completed=False),
-                    gratitude_exercise=Exercise(text=gratitude_exercise_text, completed=False),
+                    gratitude_exercise=Exercise(text=gratitude_text, completed=False),
                     mindfulness_meditation=Exercise(text="", completed=False),
                     cbt_exercise=Exercise(text="", completed=False),
                     relaxation_techniques=Exercise(text="", completed=False)
@@ -133,9 +139,9 @@ class GratitudeAgent:
             success = firebase_client.save_exercises(user_id, exercises)
             
             if success:
-                logger.info(f"Gratitude exercise updated for user {user_id}")
+                logger.info(f"Gratitude insights updated for user {user_id}")
             else:
-                logger.error(f"Failed to update gratitude exercise for user {user_id}")
+                logger.error(f"Failed to update gratitude insights for user {user_id}")
                 
             return success
         except Exception as e:
@@ -156,16 +162,16 @@ class GratitudeAgent:
                 key_themes = payload.get("key_themes", [])
                 dominant_emotion = payload.get("dominant_emotion", "neutral")
                 
-                gratitude_exercise_text = self.generate_gratitude_exercise(
+                gratitude_insights = self.identify_gratitude_opportunities(
                     user_id, journal_text, key_themes, dominant_emotion
                 )
                 
-                success = self.update_user_exercises(user_id, gratitude_exercise_text)
+                success = self.update_user_exercises(user_id, gratitude_insights)
                 
                 # Send response back to the requesting agent
                 response_payload = {
                     "success": success,
-                    "message": "Gratitude exercise generated successfully" if success else "Failed to update gratitude exercise",
+                    "message": "Gratitude insights generated successfully" if success else "Failed to update gratitude insights",
                 }
                 
                 send_message_to_agent(self.identity, message.sender, response_payload)

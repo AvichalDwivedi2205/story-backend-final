@@ -40,7 +40,7 @@ async def generate_exercises(request: ExerciseRequest, agent: ExerciseAgent = De
         return AgentResponse(
             success=True,
             data=exercises.dict(),
-            message="Exercises generated successfully"
+            message="Gratitude generated successfully"
         )
     except Exception as e:
         logger.error(f"Error generating exercises: {e}")
