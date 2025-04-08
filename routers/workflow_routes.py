@@ -12,7 +12,6 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/workflow", tags=["Workflow"])
 
-# Initialize agent with webhook URL (will be updated in main.py)
 _workflow_agent = None
 
 class WorkflowRequest(BaseModel):
@@ -67,7 +66,6 @@ def init_agent(webhook_url: str):
     global _workflow_agent
     _workflow_agent = WorkflowAgent(webhook_url)
     
-    # Register the agent with Agentverse
     success = _workflow_agent.register_with_agentverse()
     if success:
         logger.info(f"Workflow agent registered with address: {_workflow_agent.address}")

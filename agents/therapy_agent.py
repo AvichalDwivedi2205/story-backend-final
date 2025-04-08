@@ -15,7 +15,6 @@ from langchain.memory import ConversationBufferMemory
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.chains import ConversationChain
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -24,14 +23,12 @@ logger = logging.getLogger(__name__)
 
 load_dotenv()
 
-# Initialize Gemini client
 gemini_client = GeminiClient("THERAPY_AGENT_GEMINI_API_KEY")
 firebase_client = FirebaseClient()
 
-# Agent configuration
 AGENT_TITLE = "Therapy Conversation Agent"
 AGENT_SEED_PHRASE = os.getenv("FETCH_AI_SEED_PHRASE")
-AGENT_INDEX = 3  # Using index 3 for Therapy Agent
+AGENT_INDEX = 3 
 USE_SECONDARY_KEY = False
 
 class TherapyAgent:
@@ -40,7 +37,7 @@ class TherapyAgent:
         self.identity = create_agent_identity(AGENT_SEED_PHRASE, AGENT_INDEX)
         self.webhook_url = webhook_url
         self.address = self.identity.address
-        self.active_sessions = {}  # Store active therapy sessions by user_id
+        self.active_sessions = {} 
         
     def register_with_agentverse(self):
         """Register this agent with Agentverse"""
@@ -80,7 +77,6 @@ class TherapyAgent:
                 convert_system_message_to_human=True
             )
             
-            # Initialize conversation chain with therapist system prompt
             system_prompt = """
             You are an empathetic AI therapist specializing in Cognitive Behavioral Therapy (CBT), 
             mindfulness, and self-reflection techniques. Your goal is to help the user explore their 
@@ -105,11 +101,9 @@ class TherapyAgent:
                 verbose=True
             )
             
-            # Add the system prompt to memory
             memory.chat_memory.add_user_message("I'd like to start a therapy session.")
             memory.chat_memory.add_ai_message(f"{system_prompt} I'm here to listen and support you. How are you feeling today?")
             
-            # Store the session
             self.active_sessions[user_id] = {
                 "conversation": conversation,
                 "messages": [
@@ -130,18 +124,14 @@ class TherapyAgent:
             if user_id not in self.active_sessions:
                 return self.initialize_chat_session(user_id)
             
-            # Get the conversation chain for this user
             conversation = self.active_sessions[user_id]["conversation"]
             
-            # Add user message to session history
             self.active_sessions[user_id]["messages"].append(
                 TherapyMessage(content=message, is_user=True)
             )
             
-            # Generate response
             response = conversation.predict(input=message)
             
-            # Add AI response to session history
             self.active_sessions[user_id]["messages"].append(
                 TherapyMessage(content=response, is_user=False)
             )
@@ -158,16 +148,13 @@ class TherapyAgent:
             if user_id not in self.active_sessions:
                 return "No active session to end."
             
-            # Extract all messages from the session
             session_messages = self.active_sessions[user_id]["messages"]
             
-            # Format messages for the summary prompt
             conversation_text = ""
             for msg in session_messages:
                 role = "User" if msg.is_user else "Therapist"
                 conversation_text += f"{role}: {msg.content}\n\n"
-            
-            # Generate session summary using Gemini
+       
             summary_prompt = f"""
             As a professional therapist, please review the following therapy conversation and
             provide a concise summary from a therapist's perspective.
@@ -186,14 +173,12 @@ class TherapyAgent:
             
             session_summary = gemini_client.generate_text(summary_prompt, temperature=0.3)
             
-            # Create TherapySession object
             therapy_session = TherapySession(
                 messages=session_messages,
                 session_summary=session_summary,
                 user_id=user_id
             )
             
-            # Save to Firebase
             document_id = firebase_client.save_therapy_session(therapy_session)
             
             if document_id:
@@ -201,7 +186,6 @@ class TherapyAgent:
             else:
                 logger.error("Failed to save therapy session")
             
-            # Clean up the session
             del self.active_sessions[user_id]
             
             return {
@@ -231,7 +215,6 @@ class TherapyAgent:
                 if action == "start_session":
                     response = self.initialize_chat_session(user_id)
                     
-                    # Send response back to the requesting agent
                     response_payload = {
                         "success": True,
                         "message": response
@@ -241,7 +224,6 @@ class TherapyAgent:
                     user_message = payload["message"]
                     response = self.continue_chat_session(user_id, user_message)
                     
-                    # Send response back to the requesting agent
                     response_payload = {
                         "success": True,
                         "message": response
@@ -250,7 +232,6 @@ class TherapyAgent:
                 elif action == "end_session":
                     response = self.end_chat_session(user_id)
                     
-                    # Send response back to the requesting agent
                     response_payload = {
                         "success": True,
                         "closing_message": response["closing_message"],

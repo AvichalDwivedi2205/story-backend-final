@@ -10,7 +10,6 @@ from utils.gemini_client import GeminiClient
 from utils.agent_utils import create_agent_identity, register_agent_with_agentverse, create_readme
 from firebase.firebase_client import FirebaseClient
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -19,15 +18,13 @@ logger = logging.getLogger(__name__)
 
 load_dotenv()
 
-# Initialize Gemini client
 gemini_client = GeminiClient("GUIDE_AGENT_GEMINI_API_KEY")
 firebase_client = FirebaseClient()
 
-# Agent configuration
 AGENT_TITLE = "Story.AI Guide Agent"
 AGENT_SEED_PHRASE = os.getenv("FETCH_AI_SEED_PHRASE")
-AGENT_INDEX = 4  # Using index 4 for Guide Agent
-USE_SECONDARY_KEY = True  # Using secondary API key since we're now beyond the first 4 agents
+AGENT_INDEX = 4  
+USE_SECONDARY_KEY = True  
 
 class GuideAgent:
     def __init__(self, webhook_url):
@@ -113,16 +110,10 @@ class GuideAgent:
             }
     
     def search_agentverse(self, query):
-        """
-        Search for relevant agents on Agentverse that could help the user.
         
-        In a real implementation, this would use the Search and Discover feature
-        of Agentverse. For now, we'll simulate this with a predefined response.
-        """
-        # This would be an actual API call to Agentverse in a real implementation
+     
         logger.info(f"Searching Agentverse for agents relevant to: {query}")
         
-        # Simulated response
         external_agents = [
             {
                 "agent_name": "Meditation Guide Agent",
@@ -141,22 +132,18 @@ class GuideAgent:
             }
         ]
         
-        # Sort by relevance
+
         sorted_agents = sorted(external_agents, key=lambda x: x["relevance_score"], reverse=True)
         
-        # Return the most relevant agents
         return sorted_agents[:2] if sorted_agents else []
     
     def generate_comprehensive_response(self, user_id, query):
         """Generate a comprehensive response that combines Story.AI features and external Agentverse agents"""
         try:
-            # Get internal feature recommendation
+        
             feature_recommendation = self.recommend_feature(user_id, query)
-            
-            # Search Agentverse for relevant external agents
             relevant_agents = self.search_agentverse(query)
-            
-            # Build comprehensive response
+    
             response = {
                 "story_ai_recommendation": feature_recommendation,
                 "external_agents": relevant_agents,

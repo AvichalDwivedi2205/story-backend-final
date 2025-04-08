@@ -6,18 +6,16 @@ import logging
 from agents.therapy_agent import TherapyAgent
 from models.data_models import AgentResponse
 
-# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/therapy", tags=["Therapy"])
 
-# Initialize agent with webhook URL (will be updated in main.py)
 _therapy_agent = None
 
 class TherapySessionRequest(BaseModel):
     user_id: str
-    action: str  # start_session, continue_session, end_session
+    action: str  
     message: Optional[str] = None
 
 def get_therapy_agent():
@@ -90,7 +88,6 @@ def init_agent(webhook_url: str):
     global _therapy_agent
     _therapy_agent = TherapyAgent(webhook_url)
     
-    # Register the agent with Agentverse
     success = _therapy_agent.register_with_agentverse()
     if success:
         logger.info(f"Therapy agent registered with address: {_therapy_agent.address}")

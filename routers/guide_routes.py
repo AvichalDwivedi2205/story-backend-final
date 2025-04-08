@@ -6,13 +6,11 @@ import logging
 from agents.guide_agent import GuideAgent
 from models.data_models import AgentResponse
 
-# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/guide", tags=["Guide"])
 
-# Initialize agent with webhook URL (will be updated in main.py)
 _guide_agent = None
 
 class GuideRequest(BaseModel):
@@ -63,7 +61,6 @@ def init_agent(webhook_url: str):
     global _guide_agent
     _guide_agent = GuideAgent(webhook_url)
     
-    # Register the agent with Agentverse
     success = _guide_agent.register_with_agentverse()
     if success:
         logger.info(f"Guide agent registered with address: {_guide_agent.address}")

@@ -38,7 +38,6 @@ class WorkflowAgent:
         self.address = self.identity.address
         
     def register_with_agentverse(self):
-        """Register this agent with Agentverse"""
         readme = create_readme(
             domain="development",
             description="This agent helps developers design AI agent workflows by analyzing requirements and discovering relevant agents from Agentverse.",
@@ -65,7 +64,6 @@ class WorkflowAgent:
         )
     
     def analyze_requirements(self, project_description, requirements_list, industry_domain):
-        """Analyze requirements and categorize them"""
         try:
             prompt = f"""
             As an AI Workflow Planning specialist, analyze the following project requirements and categorize them 
@@ -102,7 +100,6 @@ class WorkflowAgent:
                 temperature=0.2
             )
             
-            # Convert the response to WorkflowRequirement objects
             workflow_requirements = []
             if isinstance(response, list):
                 for req in response:
@@ -176,7 +173,6 @@ class WorkflowAgent:
                 temperature=0.3
             )
             
-            # Convert to AgentComponent objects
             agent_components = []
             if isinstance(response, list):
                 for agent in response:
@@ -187,7 +183,6 @@ class WorkflowAgent:
                         relevance_score=agent.get("relevance_score", 0.0)
                     ))
             
-            # Sort by relevance score
             agent_components.sort(key=lambda x: x.relevance_score, reverse=True)
             
             return agent_components
@@ -197,7 +192,6 @@ class WorkflowAgent:
             return []
     
     def generate_integration_steps(self, project_description, requirements, recommended_agents):
-        """Generate step-by-step integration instructions for the recommended agents"""
         try:
             requirements_text = "\n".join([f"- {req.category}: {req.description} (Priority: {req.priority})" 
                                         for req in requirements])
@@ -246,7 +240,6 @@ class WorkflowAgent:
             return ["Set up communication between agents", "Implement error handling"]
     
     def generate_architecture_diagram(self, project_description, requirements, recommended_agents):
-        """Generate a text-based architecture diagram"""
         try:
             requirements_text = "\n".join([f"- {req.category}: {req.description}" 
                                         for req in requirements])
@@ -287,29 +280,23 @@ class WorkflowAgent:
             return "Architecture diagram generation failed"
     
     def create_workflow_plan(self, user_id, project_description, requirements_list, industry_domain):
-        """Create a comprehensive workflow plan for an AI agent system"""
         try:
-            # Step 1: Analyze and categorize requirements
             workflow_requirements = self.analyze_requirements(
                 project_description, requirements_list, industry_domain
             )
             
-            # Step 2: Search Agentverse for relevant agents
             recommended_agents = self.search_agentverse(
                 project_description, workflow_requirements, industry_domain
             )
             
-            # Step 3: Generate integration steps
             integration_steps = self.generate_integration_steps(
                 project_description, workflow_requirements, recommended_agents
             )
             
-            # Step 4: Generate architecture diagram
             architecture_diagram = self.generate_architecture_diagram(
                 project_description, workflow_requirements, recommended_agents
             )
             
-            # Create the complete workflow plan
             workflow_plan = WorkflowPlan(
                 title=f"AI Assistant Workflow for {industry_domain}",
                 description=project_description,
@@ -320,7 +307,6 @@ class WorkflowAgent:
                 user_id=user_id
             )
             
-            # Save to Firebase
             document_id = firebase_client.save_workflow_plan(workflow_plan.dict())
             
             if document_id:
@@ -333,7 +319,6 @@ class WorkflowAgent:
             raise
     
     def handle_webhook(self, data):
-        """Handle incoming webhook from Agentverse"""
         try:
             message = parse_message_from_agent(data)
             payload = message.payload

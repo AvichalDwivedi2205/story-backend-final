@@ -6,13 +6,11 @@ import logging
 from agents.journal_agent import JournalAgent
 from models.data_models import JournalEntry, AgentResponse
 
-# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/journal", tags=["Journal"])
 
-# Initialize agent with webhook URL (will be updated in main.py)
 _journal_agent = None
 
 class JournalRequest(BaseModel):
@@ -60,7 +58,6 @@ def init_agent(webhook_url: str):
     global _journal_agent
     _journal_agent = JournalAgent(webhook_url)
     
-    # Register the agent with Agentverse
     success = _journal_agent.register_with_agentverse()
     if success:
         logger.info(f"Journal agent registered with address: {_journal_agent.address}")

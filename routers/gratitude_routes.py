@@ -6,13 +6,11 @@ import logging
 from agents.gratitude_agent import GratitudeAgent
 from models.data_models import AgentResponse
 
-# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/gratitude", tags=["Gratitude"])
 
-# Initialize agent with webhook URL (will be updated in main.py)
 _gratitude_agent = None
 
 class GratitudeRequest(BaseModel):
@@ -36,8 +34,7 @@ async def generate_gratitude_exercise(request: GratitudeRequest, agent: Gratitud
             request.key_themes, 
             request.dominant_emotion
         )
-        
-        # Update user exercises with the generated gratitude exercise
+
         success = agent.update_user_exercises(request.user_id, gratitude_text)
         
         if success:
@@ -77,7 +74,6 @@ def init_agent(webhook_url: str):
     global _gratitude_agent
     _gratitude_agent = GratitudeAgent(webhook_url)
     
-    # Register the agent with Agentverse
     success = _gratitude_agent.register_with_agentverse()
     if success:
         logger.info(f"Gratitude agent registered with address: {_gratitude_agent.address}")

@@ -10,7 +10,6 @@ from utils.gemini_client import GeminiClient
 from utils.agent_utils import create_agent_identity, register_agent_with_agentverse, create_readme
 from firebase.firebase_client import FirebaseClient
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -19,32 +18,24 @@ logger = logging.getLogger(__name__)
 
 load_dotenv()
 
-# Initialize Gemini client
 gemini_client = GeminiClient("ASSISTANT_AGENT_GEMINI_API_KEY")
 firebase_client = FirebaseClient()
 
-# Agent configuration
 AGENT_TITLE = "Personalized Assistant Agent"
 AGENT_SEED_PHRASE = os.getenv("FETCH_AI_SEED_PHRASE")
-AGENT_INDEX = 5  # Using index 5 for Personalized Assistant Agent
-USE_SECONDARY_KEY = True  # Using secondary API key since we're beyond the first 4 agents
+AGENT_INDEX = 5  
+USE_SECONDARY_KEY = True  
 
-# Define the addresses of our other agents (in a real implementation, we'd retrieve these dynamically)
-JOURNAL_AGENT_ADDRESS = None  # Will be set during initialization
-EXERCISE_AGENT_ADDRESS = None  # Will be set during initialization
-GRATITUDE_AGENT_ADDRESS = None  # Will be set during initialization
-THERAPY_AGENT_ADDRESS = None  # Will be set during initialization
-GUIDE_AGENT_ADDRESS = None  # Will be set during initialization
+
+JOURNAL_AGENT_ADDRESS = None  
+EXERCISE_AGENT_ADDRESS = None  
+GRATITUDE_AGENT_ADDRESS = None  
+THERAPY_AGENT_ADDRESS = None  
+GUIDE_AGENT_ADDRESS = None  
 
 class AssistantAgent:
     def __init__(self, webhook_url, agent_addresses=None):
-        """
-        Initialize Personalized Assistant Agent
         
-        Args:
-            webhook_url: The URL for receiving webhooks
-            agent_addresses: Dictionary mapping agent types to their addresses
-        """
         self.identity = create_agent_identity(AGENT_SEED_PHRASE, AGENT_INDEX)
         self.webhook_url = webhook_url
         self.address = self.identity.address
@@ -64,7 +55,6 @@ class AssistantAgent:
         self.ongoing_conversations = {}
         
     def register_with_agentverse(self):
-        """Register this agent with Agentverse"""
         readme = create_readme(
             domain="mental-health",
             description="A Personalized Assistant Agent that acts as a central hub, dynamically connecting with specialized agents to fulfill user queries.",
@@ -89,12 +79,7 @@ class AssistantAgent:
         )
     
     def understand_user_query(self, query, context=None):
-        """
-        Analyze user query to determine the most appropriate agent to handle it
-        
-        Returns:
-            Dict containing the recommended agent type and confidence score
-        """
+      
         try:
             context_text = f"\nUser Context: {context}" if context else ""
             
@@ -141,7 +126,7 @@ class AssistantAgent:
         except Exception as e:
             logger.error(f"Error understanding user query: {e}")
             return {
-                "recommended_agent": "guide",  # Default to guide agent if we can't understand the query
+                "recommended_agent": "guide", 
                 "confidence": 30,
                 "explanation": "Query analysis failed. Defaulting to guide agent.",
                 "secondary_agents": []
@@ -158,11 +143,9 @@ class AssistantAgent:
                 "journal_text": query
             }
             
-            # In a real implementation, this would be an async call with a callback
-            # For now, we'll just simulate the response
+           
             logger.info(f"Routing to Journal Agent: {payload}")
-            
-            # Simulate journal analysis response
+
             return {
                 "success": True,
                 "message": "Your journal entry has been analyzed. I've identified themes of self-reflection and personal growth, with a generally positive sentiment. Check the insights section for more details."
@@ -177,7 +160,6 @@ class AssistantAgent:
             if not EXERCISE_AGENT_ADDRESS:
                 return {"error": "Exercise agent address not configured"}
             
-            # Extract themes from the query to inform exercise generation
             themes_prompt = f"""
             Extract 3-5 key themes from this text that would be useful for creating 
             personalized mental well-being exercises:
@@ -189,7 +171,6 @@ class AssistantAgent:
             
             themes_response = gemini_client.generate_text(themes_prompt, temperature=0.3)
             
-            # Clean up the response to extract just the themes
             try:
                 import re
                 themes_text = re.sub(r'```json|```', '', themes_response).strip()
@@ -204,7 +185,6 @@ class AssistantAgent:
             
             logger.info(f"Routing to Exercise Agent: {payload}")
             
-            # Simulate exercise generator response
             return {
                 "success": True,
                 "message": "I've generated some personalized exercises for you based on your needs. Check the exercises section to find morning reflection and CBT exercises tailored to your situation."
@@ -226,7 +206,6 @@ class AssistantAgent:
             
             logger.info(f"Routing to Gratitude Agent: {payload}")
             
-            # Simulate gratitude agent response
             return {
                 "success": True,
                 "message": "I've created a personalized gratitude exercise for you. It includes prompts to help you recognize positive aspects in your life and specific techniques for enhancing feelings of gratitude."
@@ -249,14 +228,12 @@ class AssistantAgent:
             
             logger.info(f"Routing to Therapy Agent: {payload}")
             
-            # Store this user in ongoing therapy conversations
             if action == "start_session":
                 self.ongoing_conversations[user_id] = "therapy"
             elif action == "end_session":
                 if user_id in self.ongoing_conversations:
                     del self.ongoing_conversations[user_id]
-            
-            # Simulate therapy agent response
+
             if action == "start_session":
                 return {
                     "success": True,
@@ -267,7 +244,7 @@ class AssistantAgent:
                     "success": True,
                     "message": "Thank you for sharing that. It sounds like you're experiencing some challenges with anxiety. Let's explore what might be triggering these feelings and consider some coping strategies that could help."
                 }
-            else:  # end_session
+            else: 
                 return {
                     "success": True,
                     "closing_message": "Thank you for sharing today. I hope our conversation was helpful.",
@@ -291,7 +268,6 @@ class AssistantAgent:
             
             logger.info(f"Routing to Guide Agent: {payload}")
             
-            # Simulate guide agent response
             return {
                 "success": True,
                 "recommended_feature": "Journaling",
@@ -310,11 +286,10 @@ class AssistantAgent:
         This is the main method that orchestrates the interaction between agents
         """
         try:
-            # Check if user is in an ongoing conversation
+       
             if user_id in self.ongoing_conversations:
                 conversation_type = self.ongoing_conversations[user_id]
-                
-                # Handle ongoing therapy conversation
+            
                 if conversation_type == "therapy":
                     if query.lower() in ["exit", "end", "quit", "goodbye", "bye"]:
                         return self.route_to_therapy_agent(user_id, query, action="end_session")
@@ -328,7 +303,6 @@ class AssistantAgent:
             
             logger.info(f"Query analysis: {agent_type} (confidence: {confidence})")
             
-            # Route to the appropriate agent based on confidence
             if confidence >= 70:
                 if agent_type == "journal":
                     return self.route_to_journal_agent(user_id, query)
@@ -341,7 +315,6 @@ class AssistantAgent:
                 elif agent_type == "guide":
                     return self.route_to_guide_agent(user_id, query, context)
             
-            # If confidence is low or agent type is not recognized, default to guide agent
             return self.route_to_guide_agent(user_id, query, context)
             
         except Exception as e:
@@ -366,7 +339,6 @@ class AssistantAgent:
                 
                 response = self.process_query(user_id, query, context)
                 
-                # Send response back to the requesting agent
                 response_payload = {
                     "success": True,
                     "response": response

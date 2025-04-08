@@ -14,7 +14,6 @@ from utils.agent_utils import (
 from firebase.firebase_client import FirebaseClient
 from models.data_models import JournalEntry, SentimentAnalysis, EmotionAnalysis, JournalInsight, JournalAnalysis
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -23,14 +22,12 @@ logger = logging.getLogger(__name__)
 
 load_dotenv()
 
-# Initialize Gemini client
 gemini_client = GeminiClient("JOURNAL_AGENT_GEMINI_API_KEY")
 firebase_client = FirebaseClient()
 
-# Agent configuration
 AGENT_TITLE = "Journal Analysis Agent"
 AGENT_SEED_PHRASE = os.getenv("FETCH_AI_SEED_PHRASE")
-AGENT_INDEX = 0  # Using index 0 for Journal Agent
+AGENT_INDEX = 0 
 USE_SECONDARY_KEY = False
 
 class JournalAgent:
@@ -67,27 +64,23 @@ class JournalAgent:
     def analyze_journal(self, journal_text, user_id):
         """Analyze a journal entry and generate insights"""
         try:
-            # Create journal entry object
             journal_entry = JournalEntry(
                 content=journal_text,
                 user_id=user_id
             )
             
-            # Perform sentiment analysis
             sentiment_result = analyze_sentiment(journal_text)
             sentiment_analysis = SentimentAnalysis(
                 score=sentiment_result["score"],
                 label=sentiment_result["label"]
             )
             
-            # Perform emotion analysis
             emotion_result = analyze_emotions(journal_text)
             emotion_analysis = EmotionAnalysis(
                 emotions=emotion_result["emotions"],
                 dominant_emotion=emotion_result["dominant_emotion"]
             )
             
-            # Generate therapeutic insights using Gemini
             insights_prompt = f"""
             Please analyze the following journal entry and provide therapeutic insights.
             
@@ -120,7 +113,6 @@ class JournalAgent:
                 temperature=0.2
             )
             
-            # Create journal insight object
             journal_insight = JournalInsight(
                 summary=insights_response.get("summary", "Summary not available"),
                 key_themes=insights_response.get("key_themes", []),
@@ -130,7 +122,6 @@ class JournalAgent:
                 actionable_advice=insights_response.get("actionable_advice", [])
             )
             
-            # Complete journal analysis object
             journal_analysis = JournalAnalysis(
                 journal_entry=journal_entry,
                 sentiment_analysis=sentiment_analysis,
@@ -138,7 +129,6 @@ class JournalAgent:
                 insights=journal_insight
             )
             
-            # Save to Firebase
             document_id = firebase_client.save_journal_entry(
                 user_id=user_id,
                 journal_data=journal_analysis.dict()
@@ -146,7 +136,6 @@ class JournalAgent:
             
             logger.info(f"Journal analysis saved with ID: {document_id}")
             
-            # Trigger the Exercise Generator Agent
             self.trigger_exercise_generator(user_id, journal_insight)
             
             return journal_analysis
@@ -158,20 +147,7 @@ class JournalAgent:
     def trigger_exercise_generator(self, user_id, journal_insight):
         """Trigger the Exercise Generator Agent with journal insights"""
         try:
-            # In a real implementation, this would send a message to the Exercise Generator Agent
-            # via the Agentverse platform. For now, we'll just log it.
             logger.info(f"Triggering Exercise Generator Agent for user {user_id}")
-            
-            # This could be implemented with send_message_to_agent from the fetch-ai-client
-            # Example (not actually working without having the Exercise Agent address):
-            # exercise_agent_address = "agent_address_here" 
-            # payload = {
-            #     "user_id": user_id,
-            #     "key_themes": journal_insight.key_themes,
-            #     "cognitive_distortions": journal_insight.cognitive_distortions,
-            #     "dominant_emotion": emotion_analysis.dominant_emotion,
-            # }
-            # send_message_to_agent(self.identity, exercise_agent_address, payload)
             
             return True
         except Exception as e:
@@ -192,7 +168,6 @@ class JournalAgent:
                 
                 journal_analysis = self.analyze_journal(journal_text, user_id)
                 
-                # Send response back to the requesting agent
                 response_payload = {
                     "success": True,
                     "message": "Journal analysis completed successfully",

@@ -6,13 +6,11 @@ import logging
 from agents.assistant_agent import AssistantAgent
 from models.data_models import AgentResponse
 
-# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/assistant", tags=["Assistant"])
 
-# Initialize agent with webhook URL (will be updated in main.py)
 _assistant_agent = None
 
 class AssistantRequest(BaseModel):
@@ -65,7 +63,6 @@ def init_agent(webhook_url: str, agent_addresses: Dict[str, str] = None):
     global _assistant_agent
     _assistant_agent = AssistantAgent(webhook_url, agent_addresses)
     
-    # Register the agent with Agentverse
     success = _assistant_agent.register_with_agentverse()
     if success:
         logger.info(f"Assistant agent registered with address: {_assistant_agent.address}")

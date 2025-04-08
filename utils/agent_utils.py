@@ -9,7 +9,6 @@ from transformers import AutoModelForSequenceClassification, AutoTokenizer
 import torch
 from typing import Dict, List, Tuple, Any
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -18,7 +17,6 @@ logger = logging.getLogger(__name__)
 
 load_dotenv()
 
-# Initialize models at module level
 logger.info("Loading sentiment analysis model...")
 SENTIMENT_TOKENIZER = AutoTokenizer.from_pretrained("cardiffnlp/twitter-roberta-base-sentiment")
 SENTIMENT_MODEL = AutoModelForSequenceClassification.from_pretrained("cardiffnlp/twitter-roberta-base-sentiment")
@@ -78,7 +76,6 @@ def analyze_sentiment(text: str) -> Dict:
     Returns a dict with score and label (e.g., positive, negative, neutral)
     """
     try:
-        # Use the pre-loaded model and tokenizer
         inputs = SENTIMENT_TOKENIZER(text, return_tensors="pt", truncation=True, max_length=512)
         with torch.no_grad():
             outputs = SENTIMENT_MODEL(**inputs)
@@ -86,7 +83,6 @@ def analyze_sentiment(text: str) -> Dict:
         scores = torch.nn.functional.softmax(outputs.logits, dim=1).tolist()[0]
         labels = ["negative", "neutral", "positive"]
         
-        # Find the dominant sentiment
         dominant_idx = scores.index(max(scores))
         sentiment = {
             "score": scores[dominant_idx],
@@ -105,7 +101,6 @@ def analyze_emotions(text: str) -> Dict:
     Returns a dict with emotion probabilities and dominant emotion
     """
     try:
-        # Use the pre-loaded model and tokenizer
         inputs = EMOTION_TOKENIZER(text, return_tensors="pt", truncation=True, max_length=512)
         with torch.no_grad():
             outputs = EMOTION_MODEL(**inputs)

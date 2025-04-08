@@ -11,7 +11,6 @@ from utils.agent_utils import create_agent_identity, register_agent_with_agentve
 from firebase.firebase_client import FirebaseClient
 from models.data_models import Exercise, Exercises
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -20,14 +19,12 @@ logger = logging.getLogger(__name__)
 
 load_dotenv()
 
-# Initialize Gemini client
 gemini_client = GeminiClient("GRATITUDE_AGENT_GEMINI_API_KEY")
 firebase_client = FirebaseClient()
 
-# Agent configuration
 AGENT_TITLE = "Gratitude Agent"
 AGENT_SEED_PHRASE = os.getenv("FETCH_AI_SEED_PHRASE")
-AGENT_INDEX = 2  # Using index 2 for Gratitude Agent
+AGENT_INDEX = 2 
 USE_SECONDARY_KEY = False
 
 class GratitudeAgent:
@@ -102,7 +99,6 @@ class GratitudeAgent:
             Keep the total response between 200-300 words.
             """
             
-            # Generate gratitude insights
             gratitude_insights = gemini_client.generate_text(prompt, temperature=0.7)
             
             return gratitude_insights
@@ -113,11 +109,9 @@ class GratitudeAgent:
     def update_user_exercises(self, user_id, gratitude_text):
         """Update user exercises with gratitude insights"""
         try:
-            # Get existing exercises
             existing_exercises = firebase_client.get_user_exercises(user_id)
             
             if existing_exercises:
-                # Create exercises object with updated gratitude exercise
                 exercises = Exercises(
                     morning_reflection=Exercise(**existing_exercises.get("morning_reflection", {"text": "", "completed": False})),
                     gratitude_exercise=Exercise(text=gratitude_text, completed=False),
@@ -126,7 +120,6 @@ class GratitudeAgent:
                     relaxation_techniques=Exercise(**existing_exercises.get("relaxation_techniques", {"text": "", "completed": False}))
                 )
             else:
-                # Create new exercises object with only gratitude exercise
                 exercises = Exercises(
                     morning_reflection=Exercise(text="", completed=False),
                     gratitude_exercise=Exercise(text=gratitude_text, completed=False),
@@ -135,7 +128,6 @@ class GratitudeAgent:
                     relaxation_techniques=Exercise(text="", completed=False)
                 )
             
-            # Save to Firebase
             success = firebase_client.save_exercises(user_id, exercises)
             
             if success:
@@ -168,7 +160,6 @@ class GratitudeAgent:
                 
                 success = self.update_user_exercises(user_id, gratitude_insights)
                 
-                # Send response back to the requesting agent
                 response_payload = {
                     "success": success,
                     "message": "Gratitude insights generated successfully" if success else "Failed to update gratitude insights",

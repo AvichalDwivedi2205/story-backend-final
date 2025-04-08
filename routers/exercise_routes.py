@@ -6,13 +6,11 @@ import logging
 from agents.exercise_agent import ExerciseAgent
 from models.data_models import AgentResponse
 
-# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/exercise", tags=["Exercise"])
 
-# Initialize agent with webhook URL (will be updated in main.py)
 _exercise_agent = None
 
 class ExerciseRequest(BaseModel):
@@ -67,7 +65,6 @@ def init_agent(webhook_url: str):
     global _exercise_agent
     _exercise_agent = ExerciseAgent(webhook_url)
     
-    # Register the agent with Agentverse
     success = _exercise_agent.register_with_agentverse()
     if success:
         logger.info(f"Exercise agent registered with address: {_exercise_agent.address}")

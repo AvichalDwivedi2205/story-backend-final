@@ -11,7 +11,6 @@ from utils.agent_utils import create_agent_identity, register_agent_with_agentve
 from firebase.firebase_client import FirebaseClient
 from models.data_models import Exercise, Exercises
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -20,14 +19,12 @@ logger = logging.getLogger(__name__)
 
 load_dotenv()
 
-# Initialize Gemini client
 gemini_client = GeminiClient("EXERCISE_AGENT_GEMINI_API_KEY")
 firebase_client = FirebaseClient()
 
-# Agent configuration
 AGENT_TITLE = "Exercise Generator Agent"
 AGENT_SEED_PHRASE = os.getenv("FETCH_AI_SEED_PHRASE")
-AGENT_INDEX = 1  # Using index 1 for Exercise Generator Agent
+AGENT_INDEX = 1  
 USE_SECONDARY_KEY = False
 
 class ExerciseAgent:
@@ -82,7 +79,6 @@ class ExerciseAgent:
             Format the exercise in a clear, structured way that's easy to follow.
             """
             
-            # First API call to generate morning reflection
             morning_reflection_text = gemini_client.generate_text(prompt, temperature=0.7)
             
             return morning_reflection_text
@@ -109,7 +105,6 @@ class ExerciseAgent:
             Format the exercise in a clear, structured way that's easy to follow.
             """
             
-            # Second API call to generate CBT exercise
             cbt_exercise_text = gemini_client.generate_text(prompt, temperature=0.7)
             
             return cbt_exercise_text
@@ -125,34 +120,29 @@ class ExerciseAgent:
             if not cognitive_distortions:
                 cognitive_distortions = ["negative thinking", "overgeneralization"]
                 
-            # Generate morning reflection
             morning_reflection_text = self.generate_morning_reflection(
                 user_id, key_themes, dominant_emotion
             )
             
-            # Generate CBT exercise
             cbt_exercise_text = self.generate_cbt_exercise(
                 user_id, cognitive_distortions, dominant_emotion
             )
-            
-            # Create exercises with the generated content
+
             exercises = Exercises(
                 morning_reflection=Exercise(text=morning_reflection_text, completed=False),
-                gratitude_exercise=Exercise(text="", completed=False),  # Will be filled by Gratitude Agent
+                gratitude_exercise=Exercise(text="", completed=False),  
                 mindfulness_meditation=Exercise(text="", completed=False),
                 cbt_exercise=Exercise(text=cbt_exercise_text, completed=False),
                 relaxation_techniques=Exercise(text="", completed=False)
             )
             
-            # Save to Firebase
             success = firebase_client.save_exercises(user_id, exercises)
             
             if success:
                 logger.info(f"Exercises saved for user {user_id}")
             else:
                 logger.error(f"Failed to save exercises for user {user_id}")
-            
-            # Trigger Gratitude Agent to fill in the gratitude exercise
+
             self.trigger_gratitude_agent(user_id, key_themes, dominant_emotion)
             
             return exercises
@@ -165,15 +155,6 @@ class ExerciseAgent:
         try:
             logger.info(f"Triggering Gratitude Agent for user {user_id}")
             
-            # In a real implementation, this would send a message to the Gratitude Agent
-            # via the Agentverse platform
-            # gratitude_agent_address = "agent_address_here" 
-            # payload = {
-            #     "user_id": user_id,
-            #     "key_themes": key_themes,
-            #     "dominant_emotion": dominant_emotion,
-            # }
-            # send_message_to_agent(self.identity, gratitude_agent_address, payload)
             
             return True
         except Exception as e:
@@ -198,7 +179,6 @@ class ExerciseAgent:
                     user_id, key_themes, cognitive_distortions, dominant_emotion
                 )
                 
-                # Send response back to the requesting agent
                 response_payload = {
                     "success": True,
                     "message": "Exercise generation completed successfully",
