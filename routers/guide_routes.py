@@ -18,7 +18,6 @@ _guide_agent = None
 class GuideRequest(BaseModel):
     user_id: str
     query: str
-    user_history: Optional[str] = None
 
 def get_guide_agent():
     if _guide_agent is None:
@@ -31,8 +30,7 @@ async def get_recommendations(request: GuideRequest, agent: GuideAgent = Depends
     try:
         response = agent.generate_comprehensive_response(
             request.user_id, 
-            request.query, 
-            request.user_history
+            request.query
         )
         
         return AgentResponse(
