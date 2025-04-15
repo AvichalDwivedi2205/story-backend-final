@@ -1,5 +1,7 @@
 # Story.AI: Mental Well-Being AI Agents
 
+![tag : innovationlab](https://img.shields.io/badge/innovationlab-3D8BD3)
+
 Story.AI is a comprehensive mental well-being platform powered by specialized AI agents implemented with Fetch.AI's uAgents framework and registered on Agentverse. These agents work together to provide personalized support for users' mental health needs.
 
 ## Architecture
