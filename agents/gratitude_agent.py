@@ -60,6 +60,34 @@ class GratitudeAgent:
             use_secondary=USE_SECONDARY_KEY
         )
     
+    def generate_gratitude_exercise(self, user_id, journal_text=None, key_themes=None, dominant_emotion="neutral"):
+        """Generate a personalized gratitude exercise"""
+        try:
+            # This method effectively acts as a wrapper around identify_gratitude_opportunities
+            gratitude_text = self.identify_gratitude_opportunities(
+                user_id, journal_text, key_themes, dominant_emotion
+            )
+            
+            # Add some exercise structure around the identified gratitude opportunities
+            exercise = f"""
+# Gratitude Practice Exercise
+
+{gratitude_text}
+
+## Practice Instructions
+1. Take a moment to reflect on each of these points of gratitude
+2. For each point, close your eyes and visualize it for 15-30 seconds
+3. Notice any positive feelings that arise as you focus on these things
+4. Consider writing a brief thank you note to someone mentioned in these reflections
+
+Remember that practicing gratitude regularly can significantly improve your mental wellbeing over time.
+"""
+            
+            return exercise.strip()
+        except Exception as e:
+            logger.error(f"Error generating gratitude exercise: {e}")
+            raise
+    
     def identify_gratitude_opportunities(self, user_id, journal_text=None, key_themes=None, dominant_emotion="neutral"):
         """Identify things to be grateful for in the user's journal entry"""
         try:
