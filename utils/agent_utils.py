@@ -145,6 +145,7 @@ def create_readme(domain: str, description: str, use_cases: List[str],
     ])
     
     readme = f"""
+    ![tag : innovationlab](https://img.shields.io/badge/innovationlab-3D8BD3)
         ![domain:{domain}](https://img.shields.io/badge/{domain}-3D8BD3)
         
         <description>{description}</description>
